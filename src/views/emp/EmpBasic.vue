@@ -169,7 +169,8 @@
                     <template slot-scope="scope">
                         <el-button style="padding: 3px" size="mini">Edit</el-button>
                         <el-button style="padding: 3px" size="mini" type="primary">Adv Cont</el-button>
-                        <el-button style="padding: 3px" size="mini" type="danger">Delete</el-button>
+                        <el-button @click="deleteEmp(scope.row)" style="padding: 3px" size="mini" type="danger">Delete
+                        </el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -188,7 +189,7 @@
             :visible.sync="dialogVisible"
             width="80%">
             <div>
-                <el-form>
+                <el-form :model="emp" :rules="rules" ref="empForm">
                     <el-row>
                         <el-col :span="6">
                             <el-form-item label="Name : " prop="name">
@@ -199,8 +200,8 @@
                         <el-col :span="5">
                             <el-form-item label="Gender : " prop="gender">
                                 <el-radio-group v-model="emp.gender">
-                                    <el-radio label="Male">Male</el-radio>
-                                    <el-radio label="Female">Female</el-radio>
+                                    <el-radio label="男">Male</el-radio>
+                                    <el-radio label="女">Female</el-radio>
                                 </el-radio-group>
                             </el-form-item>
                         </el-col>
@@ -416,17 +417,17 @@
                         <el-col :span="8">
                             <el-form-item label="Hiring Type : " prop="engageForm">
                                 <el-radio-group v-model="emp.engageForm">
-                                    <el-radio label="Permanent">Permanent</el-radio>
-                                    <el-radio label="Contract">Contract</el-radio>
+                                    <el-radio label="劳动合同">劳动合同</el-radio>
+                                    <el-radio label="劳务合同">劳务合同</el-radio>
                                 </el-radio-group>
                             </el-form-item>
                         </el-col>
                         <el-col :span="8">
                             <el-form-item label="Marriage Statuc : " prop="wedlock">
                                 <el-radio-group v-model="emp.wedlock">
-                                    <el-radio label="Single">Single</el-radio>
-                                    <el-radio label="Married">Married</el-radio>
-                                    <el-radio label="Divorced">Divorced</el-radio>
+                                    <el-radio label="未婚">未婚</el-radio>
+                                    <el-radio label="已婚">已婚</el-radio>
+                                    <el-radio label="离异">离异</el-radio>
                                 </el-radio-group>
                             </el-form-item>
                         </el-col>
@@ -509,6 +510,40 @@ export default {
             defaultProps: {
                 children: 'children',
                 label: 'name'
+            },
+            rules: {
+                name:[{required:true, message:"please enter name", trigger:"blur"}],
+                gender:[{required:true, message:"please enter gender", trigger:"blur"}],
+                birthday:[{required:true, message:"please enter birthday", trigger:"blur"}],
+                idCard:[{required:true, message:"please enter idCard #", trigger:"blur"},
+                    {
+                        pattern:/(^[1-9]\d{5}(18|19|([23]\d))\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{3}[0-9Xx]$)|(^[1-9]\d{5}\d{2}((0[1-9])|(10|11|12))(([0-2][1-9])|10|20|30|31)\d{2}$)/,
+                        message:'id Card # form incorrect!!!',
+                        trigger: 'blur'
+                    }],
+                nationId:[{required:true, message:"please enter nationId", trigger:"blur"}],
+                nativePlace:[{required:true, message:"please enter nativePlace", trigger:"blur"}],
+                politicId:[{required:true, message:"please enter politicId", trigger:"blur"}],
+                email:[{required:true, message:"please enter email", trigger:"blur"},{type:'email',message:
+                        'Email form incorrect!!!',trigger: 'blur'}],
+                phone:[{required:true, message:"please enter phone", trigger:"blur"}],
+                address:[{required:true, message:"please enter address", trigger:"blur"}],
+                departmentId:[{required:true, message:"please enter departmentId", trigger:"blur"}],
+                jobLevelId:[{required:true, message:"please enter jobLevelId", trigger:"blur"}],
+                posId:[{required:true, message:"please enter posId", trigger:"blur"}],
+                engageForm:[{required:true, message:"please enter engageForm", trigger:"blur"}],
+                tiptopDegree:[{required:true, message:"please enter tiptopDegree", trigger:"blur"}],
+                specialty:[{required:true, message:"please enter specialty", trigger:"blur"}],
+                school:[{required:true, message:"please enter school", trigger:"blur"}],
+                beginDate:[{required:true, message:"please enter beginDate", trigger:"blur"}],
+                workState:[{required:true, message:"please enter workState", trigger:"blur"}],
+                workID:[{required:true, message:"please enter workID", trigger:"blur"}],
+                contractTerm:[{required:true, message:"please enter contractTerm", trigger:"blur"}],
+                conversionTime:[{required:true, message:"please enter conversionTime", trigger:"blur"}],
+                notWorkDate:[{required:true, message:"please enter notWorkDate", trigger:"blur"}],
+                beginContract:[{required:true, message:"please enter beginContract", trigger:"blur"}],
+                endContract:[{required:true, message:"please enter endContract", trigger:"blur"}],
+                workAge:[{required:true, message:"please enter workAge", trigger:"blur"}],
             }
         }
     },
@@ -517,11 +552,33 @@ export default {
         this.initData();
     },
     methods: {
+        deleteEmp(data) {
+                this.$confirm('This operation will permanently delete : ' + data.name + ', continue?', 'hit', {
+                    confirmButtonText: 'Confirm',
+                    cancelButtonText: 'Cancel',
+                    type: 'warning'
+                }).then(() => {
+                    this.deleteRequest("/employee/basic/"+data.id).then(resp=>{
+                        if (resp) {
+                            this.initEmps();
+                        }
+                    })
+                }).catch(() => {
+                    this.$message({
+                        type: 'info',
+                        message: 'Delete Cancelled....'
+                    });
+                });
+        },
         doAddEmp() {
-            this.postRequest("/emp/basic/",this.emp).then(resp=>{
-                if (resp) {
-                    this.dialogVisible=false;
-                    this.initEmps();
+            this.$refs['empForm'].validate((valid)=>{
+                if (valid) {
+                    this.postRequest("/employee/basic/",this.emp).then(resp=>{
+                        if (resp) {
+                            this.dialogVisible=false;
+                            this.initEmps();
+                        }
+                    })
                 }
             })
         },
@@ -535,7 +592,7 @@ export default {
         },
         initPosition() {
             if (!window.sessionStorage.getItem("positions")) {
-                this.getRequest('/emp/basic/positions').then(resp => {
+                this.getRequest('/employee/basic/positions').then(resp => {
                     if (resp) {
                         this.positions = resp;
                     }
@@ -543,7 +600,7 @@ export default {
             }
         },
         getMaxWorkID() {
-            this.getRequest("/emp/basic/maxWorkID").then(resp => {
+            this.getRequest("/employee/basic/maxWorkID").then(resp => {
                 if (resp) {
                     this.emp.workID = resp.obj;
                 }
@@ -551,7 +608,7 @@ export default {
         },
         initData() {
             if (!window.sessionStorage.getItem("nations")) {
-                this.getRequest('/emp/basic/nations').then(resp => {
+                this.getRequest('/employee/basic/nations').then(resp => {
                     if (resp) {
                         this.nations = resp;
                         window.sessionStorage.setItem("nations", JSON.stringify(resp));
@@ -561,7 +618,7 @@ export default {
                 this.nations = JSON.parse(window.sessionStorage.getItem("nations"));
             }
             if (!window.sessionStorage.getItem("joblevels")) {
-                this.getRequest('/emp/basic/joblevels').then(resp => {
+                this.getRequest('/employee/basic/joblevels').then(resp => {
                     if (resp) {
                         this.joblevels = resp;
                         window.sessionStorage.setItem("joblevels", JSON.stringify(resp));
@@ -571,7 +628,7 @@ export default {
                 this.joblevels = JSON.parse(window.sessionStorage.getItem("joblevels"))
             }
             if (!window.sessionStorage.getItem("politicsstatus")) {
-                this.getRequest('/emp/basic/politicsstatus').then(resp => {
+                this.getRequest('/employee/basic/politicsstatus').then(resp => {
                     if (resp) {
                         this.politicsstatus = resp;
                         window.sessionStorage.setItem("politicsstatus", JSON.stringify(resp));
@@ -581,7 +638,7 @@ export default {
                 this.politicsstatus= JSON.parse(window.sessionStorage.getItem("politicsstatus"))
             }
             if (!window.sessionStorage.getItem("deps")) {
-                this.getRequest('/emp/basic/deps').then(resp => {
+                this.getRequest('/employee/basic/deps').then(resp => {
                     if (resp) {
                         this.allDeps = resp;
                         window.sessionStorage.setItem("deps", JSON.stringify(resp));
@@ -606,7 +663,7 @@ export default {
         },
         initEmps() {
             this.loading = true;
-            this.getRequest("/emp/basic/?page=" + this.page + "&size=" + this.size + '&keyword=' + this.keyword).then(resp => {
+            this.getRequest("/employee/basic/?page=" + this.page + "&size=" + this.size + '&keyword=' + this.keyword).then(resp => {
                 this.loading = false;
                 if (resp) {
                     this.emps = resp.data;

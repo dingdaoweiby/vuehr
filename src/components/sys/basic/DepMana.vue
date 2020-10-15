@@ -103,6 +103,9 @@
                   let d = deps[i];
                   if (d.id === dep.parentId) {
                       d.children = d.children.concat(dep);
+                      if (d.children.length > 0) {
+                          d.parent = true;
+                      }
                       return;
                   } else {
                       this.addDep2Deps(d.children, dep);
@@ -118,14 +121,17 @@
                    }
                })
             },
-            removeDepFromDeps(deps, id){
+            removeDepFromDeps(p, deps, id){
                 for (let i = 0; i < deps.length; i++) {
                     let d = deps[i];
                     if (d.id === id) {
                         deps.splice(i, 1);
+                        if (dep.length === 0) {
+                            p.parent = false;
+                        }
                         return;
                     } else {
-                        this.removeDepFromDeps(d.children, id);
+                        this.removeDepFromDeps(d, d.children, id);
                     }
                 }
             },
@@ -133,20 +139,20 @@
                 if(data.parent) {
                     this.$message.error("Super Dept Failed to delete!!!");
                 } else {
-                    this.$confirm('This operation will permanently delete' + data.name + ', continue?', 'hit', {
+                    this.$confirm('This operation will permanently delete : ' + data.name + ', continue?', 'hit', {
                         confirmButtonText: 'Confirm',
                         cancelButtonText: 'Cancel',
                         type: 'warning'
                     }).then(() => {
                         this.deleteRequest("/system/basic/department/"+data.id).then(resp=>{
                             if (resp) {
-                                this.removeDepFromDeps(this.deps, data.id);
+                                this.removeDepFromDeps(null,this.deps, data.id);
                             }
                         })
                     }).catch(() => {
                         this.$message({
                             type: 'info',
-                            message: '已取消删除'
+                            message: 'Delete Cancelled....'
                         });
                     });
                 }
