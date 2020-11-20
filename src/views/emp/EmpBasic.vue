@@ -1,31 +1,139 @@
 <template>
     <div>
-        <div style="display: flex;justify-content: space-between">
-            <div>
-                <el-input placeholder="Please Enter Employee Name" prefix-icon="el-icon-search"
-                          style="width: 300px; margin-right: 10px"
-                          clearable
-                          @clear="initEmps"
-                          v-model="keyword" @keydown.enter.native="initEmps"></el-input>
-                <el-button icon="el-icon-search" type="primary" @click="initEmps">Search</el-button>
-                <el-button type="primary">
-                    <i class="fa fa-angle-double-down" aria-hidden="true"/>
-                    Advanced Search
-                </el-button>
+        <div >
+            <div style="display: flex;justify-content: space-between">
+                <div>
+                    <el-input placeholder="Please Enter Employee Name"
+                              prefix-icon="el-icon-search"
+                              style="width: 350px; margin-right: 10px"
+                              clearable
+                              @clear="initEmps"
+                              v-model="keyword"
+                              @keydown.enter.native="initEmps"
+                              :disabled="showAdvanceSearchView"></el-input>
+                    <el-button icon="el-icon-search" type="primary" @click="initEmps" :disabled="showAdvanceSearchView">Search</el-button>
+                    <el-button type="primary" @click="showAdvanceSearchView=!showAdvanceSearchView">
+                        <i :class="showAdvanceSearchView?'fa fa-angle-double-up':'fa fa-angle-double-down'"
+                           aria-hidden="true"/>
+                        Advanced Search
+                    </el-button>
+                </div>
+                <div>
+                    <el-upload
+                        :show-file-list="false"
+                        :before-upload="beforeUpload"
+                        :on-success="onSuccess"
+                        :on-error="onError"
+                        :disabled="importDataDisabled"
+                        style="display: inline-flex; margin-right: 8px"
+                        action="/employee/basic/import">
+                        <el-button :disabled="importDataDisabled" type="success" :icon="importDataBtnIcon">
+                            {{importDataBtnText}}
+                        </el-button>
+                    </el-upload>
+                    <el-button type="success" @click="exportsData" icon="el-icon-download">
+                        Export Data
+                    </el-button>
+                    <el-button type="primary" icon="el-icon-plus" @click="showAddEmpView">
+                        Add User
+                    </el-button>
+                </div>
             </div>
-            <div>
-                <el-button type="success">
-                    <i class="fa fa-level-up" aria-hidden="true"/>
-                    Input Data
-                </el-button>
-                <el-button type="success">
-                    <i class="fa fa-level-down" aria-hidden="true"/>
-                    Output Data
-                </el-button>
-                <el-button type="primary" icon="el-icon-plus" @click="showAddEmpView">
-                    Add User
-                </el-button>
+            <transition name="slide-fade">
+            <div v-show="showAdvanceSearchView"
+                style="border: 1px solid #409eff;border-radius: 5px;box-sizing: border-box;padding: 5px; margin: 5px 0px 10px;">
+                <el-row>
+                    <el-col :span="5">
+                        Polic Sts:
+                        <el-select v-model="searchValue.politicId" placeholder="PoliticStat" size="mini" style="width:130px">
+                            <el-option
+                                v-for="item in politicsstatus"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="4">
+                        Naty:
+                        <el-select v-model="searchValue.nationId" placeholder="Nationality" size="mini" style="width:130px">
+                            <el-option
+                                v-for="item in nations"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="4">
+                        Postition:
+                        <el-select v-model="searchValue.posId" placeholder="Position" size="mini" style="width:130px">
+                            <el-option
+                                v-for="item in positions"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="4">
+                        JobLevel:
+                        <el-select v-model="searchValue.jobLevelId" placeholder="Job Level"                                                  size="mini" style="width:130px">
+                            <el-option
+                                v-for="item in joblevels"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id">
+                            </el-option>
+                        </el-select>
+                    </el-col>
+                    <el-col :span="7">
+                        Hiring Type:
+                        <el-radio-group v-model="searchValue.engageForm">
+                            <el-radio label="劳动合同">劳动合同</el-radio>
+                            <el-radio label="劳务合同">劳务合同</el-radio>
+                        </el-radio-group>
+                    </el-col>
+                </el-row>
+                <el-row style="margin-top: 10px">
+                    <el-col :span="5">
+                        Department :
+                        <el-popover
+                            placement="right"
+                            title="Please select department"
+                            width="200"
+                            trigger="manual"
+                            v-model="popVisible">
+                            <el-tree default-expand-all :data="allDeps" :props="defaultProps"
+                                     @node-click="searchViewHandleNodeClick"></el-tree>
+                            <div slot="reference" style="width: 130px;display: inline-flex;font-size: 13px;border:
+                            1px solid #dedede;height: 26px;border-radius: 5px; cursor: pointer;align-items: center;
+                            padding-left: 8px;box-sizing: border-box;margin-left: 3px"
+                                 @click="showDepView">{{inputDepName}}
+                            </div>
+                        </el-popover>
+                    </el-col>
+                    <el-col :span="10">
+                        Date join:
+                        <el-date-picker
+                            v-model="searchValue.beginDateScope"
+                            type="daterange"
+                            size="mini"
+                            value-format="yyyy-MM-dd"
+                            unlink-panels
+                            range-separator="To"
+                            start-placeholder="Start Date"
+                            end-placeholder="End Date">
+                        </el-date-picker>
+                    </el-col>
+                    <el-col :span="5" :offset="4">
+                        <el-button size="mini" >Cancel</el-button>
+                        <el-button size="mini" icon="el-icon-search" type="primary" @click="initEmps('advanced')">Search
+                        </el-button>
+                    </el-col>
+                </el-row>
             </div>
+            </transition>
         </div>
         <div style="margin-top: 10px">
             <el-table
@@ -55,6 +163,12 @@
                     width="85">
                 </el-table-column>
                 <el-table-column
+                    prop="gender"
+                    label="Gender"
+                    align="left"
+                    width="85">
+                </el-table-column>
+                <el-table-column
                     prop="birthday"
                     width="95"
                     align="left"
@@ -69,7 +183,7 @@
                 <el-table-column
                     prop="wedlock"
                     width="70"
-                    label="Marriage">
+                    label="Marriag">
                 </el-table-column>
                 <el-table-column
                     prop="nation.name"
@@ -126,6 +240,24 @@
                     label="Hiring Form">
                 </el-table-column>
                 <el-table-column
+                    prop="tiptopDegree"
+                    width="80"
+                    align="left"
+                    label="TiptopDegree">
+                </el-table-column>
+                <el-table-column
+                    prop="specialty"
+                    width="150"
+                    align="left"
+                    label="Specialty">
+                </el-table-column>
+                <el-table-column
+                    prop="school"
+                    width="150"
+                    align="left"
+                    label="School">
+                </el-table-column>
+                <el-table-column
                     prop="beginDate"
                     width="85"
                     align="left"
@@ -159,15 +291,11 @@
                     </template>
                 </el-table-column>
                 <el-table-column
-                    prop="tiptopDegree"
-                    label="Top Degree">
-                </el-table-column>
-                <el-table-column
                     fixed="right"
                     width="200"
                     label="Operation">
                     <template slot-scope="scope">
-                        <el-button style="padding: 3px" size="mini">Edit</el-button>
+                        <el-button @click="showEditEmpView(scope.row)" style="padding: 3px" size="mini">Edit</el-button>
                         <el-button style="padding: 3px" size="mini" type="primary">Adv Cont</el-button>
                         <el-button @click="deleteEmp(scope.row)" style="padding: 3px" size="mini" type="danger">Delete
                         </el-button>
@@ -185,7 +313,7 @@
             </div>
         </div>
         <el-dialog
-            title="Add Employee"
+            :title="title"
             :visible.sync="dialogVisible"
             width="80%">
             <div>
@@ -304,10 +432,8 @@
                                     v-model="popVisible">
                                     <el-tree default-expand-all :data="allDeps" :props="defaultProps"
                                                  @node-click="handleNodeClick"></el-tree>
-                                    <div slot="reference" style="width: 150px;display: inline-flex;font-size: 13px;border: 1px solid
-                                                        #dedede;height: 26px;border-radius: 5px;
-                                                        cursor: pointer;align-items: center;
-                                                        padding-left: 8px;box-sizing: border-box"
+                                    <div slot="reference"
+                                         style="width: 150px;display: inline-flex;font-size: 13px;border: 1px solid #dedede;height: 26px;border-radius: 5px;cursor: pointer;align-items: center;padding-left: 8px;box-sizing: border-box"
                                          @click="showDepView">{{inputDepName}}</div>
                                 </el-popover>
                             </el-form-item>
@@ -447,6 +573,20 @@ export default {
     name: "EmpBasic",
     data() {
         return {
+            searchValue:{
+                politicId:null,
+                nationId:null,
+                jobLevelId:null,
+                posId:null,
+                engageForm: null,
+                departmentId:null,
+                beginDateScope:null
+            },
+            title:'',
+            importDataBtnText:'Import Data',
+            importDataBtnIcon:'el-icon-upload2',
+            importDataDisabled:false,
+            showAdvanceSearchView: false,
             allDeps: [],
             emps: [],
             loading: false,
@@ -460,7 +600,7 @@ export default {
             joblevels: [],
             politicsstatus: [],
             positions: [],
-            inputDepName:'',
+            inputDepName:'Department',
             tiptopDegrees: ['本科', '大专', '硕士', '博士', '高中', '初中', '小学', '其他'],
             options: [{
                 value: '选项1',
@@ -490,7 +630,7 @@ export default {
                 email: "laowang@qq.com",
                 phone: "18565558897",
                 address: "深圳市南山区",
-                departmentId: 5,
+                departmentId: null,
                 jobLevelId: 9,
                 posId: 29,
                 engageForm: "劳务合同",
@@ -550,8 +690,71 @@ export default {
     mounted() {
         this.initEmps();
         this.initData();
+        this.initPosition();
     },
     methods: {
+        searchViewHandleNodeClick(data) {
+            this.inputDepName = data.name;
+            this.searchValue.departmentId=data.id;
+            this.popVisible = !this.popVisible;
+        },
+        onError(err, file, fileList) {
+            this.importDataBtnText = 'Import Data';
+            this.importDataBtnIcon = 'el-icon-upload2';
+            this.importDataDisabled=false;
+        },
+        onSuccess(response, file, fileList) {
+            this.importDataBtnText = 'Import Data';
+            this.importDataBtnIcon = 'el-icon-upload2';
+            this.importDataDisabled=false;
+            this.initEmps();
+        },
+        beforeUpload() {
+            this.importDataBtnText = 'Importing....';
+            this.importDataBtnIcon = 'el-icon-loading';
+            this.importDataDisabled=true;
+        },
+        exportsData() {
+            window.open('/employee/basic/export','_parent');
+        },
+        emptyEmp() {
+            this.emp= {
+                name: "",
+                gender: "",
+                birthday: "",
+                idCard: "",
+                wedlock: "",
+                nationId: 1,
+                nativePlace: "",
+                politicId: 13,
+                email: "",
+                phone: "",
+                address: "",
+                departmentId: null,
+                jobLevelId: 9,
+                posId: 29,
+                engageForm: "",
+                tiptopDegree: "",
+                specialty: "",
+                school: "",
+                beginDate: "",
+                workID: "",
+                contractTerm: 2,
+                conversionTime: "",
+                notWorkDate: null,
+                beginContract: "",
+                endContract: "",
+                workAge: null
+            }
+            this.inputDepName = '';
+        },
+        showEditEmpView(data) {
+            this.initPosition();
+            this.title='Edit Emp Info';
+            this.emp=data;
+            this.inputDepName=data.department.name;
+            this.dialogVisible=true;
+        },
         deleteEmp(data) {
                 this.$confirm('This operation will permanently delete : ' + data.name + ', continue?', 'hit', {
                     confirmButtonText: 'Confirm',
@@ -571,21 +774,34 @@ export default {
                 });
         },
         doAddEmp() {
-            this.$refs['empForm'].validate((valid)=>{
-                if (valid) {
-                    this.postRequest("/employee/basic/",this.emp).then(resp=>{
-                        if (resp) {
-                            this.dialogVisible=false;
-                            this.initEmps();
-                        }
-                    })
-                }
-            })
+            if (this.emp.id) {
+                this.$refs['empForm'].validate((valid)=>{
+                    if (valid) {
+                        this.putRequest("/employee/basic/",this.emp).then(resp=>{
+                            if (resp) {
+                                this.dialogVisible=false;
+                                this.initEmps();
+                            }
+                        })
+                    }
+                });
+            } else {
+                this.$refs['empForm'].validate((valid) => {
+                    if (valid) {
+                        this.postRequest("/employee/basic/", this.emp).then(resp => {
+                            if (resp) {
+                                this.dialogVisible = false;
+                                this.initEmps();
+                            }
+                        })
+                    }
+                })
+            }
         },
         handleNodeClick(data) {
-            this.popVisible = !this.popVisible;
-            this.departmentId=data.id;
             this.inputDepName=data.name;
+            this.emp.departmentId=data.id;
+            this.popVisible = !this.popVisible;
         },
         showDepView() {
             this.popVisible = !this.popVisible;
@@ -657,24 +873,65 @@ export default {
             this.initEmps();
         },
         showAddEmpView() {
+            this.emptyEmp();
+            this.title='Add Emp';
             this.dialogVisible = true;
-            this.initPosition();
             this.getMaxWorkID();
         },
-        initEmps() {
+        initEmps(type) {
             this.loading = true;
-            this.getRequest("/employee/basic/?page=" + this.page + "&size=" + this.size + '&keyword=' + this.keyword).then(resp => {
+            let url = '/employee/basic/?page='+this.page+'&size='+this.size;
+            if (type && type === 'advanced') {
+                if (this.searchValue.politicId) {
+                    url += '&politicId='+this.searchValue.politicId
+                }
+                if (this.searchValue.nationId) {
+                    url += '&nationId='+this.searchValue.nationId
+                }
+                if (this.searchValue.jobLevelId) {
+                    url += '&jobLevelId='+this.searchValue.jobLevelId
+                }
+                if (this.searchValue.posId) {
+                    url += '&posId='+this.searchValue.posId
+                }
+                if (this.searchValue.engageForm) {
+                    url += '&engageForm='+this.searchValue.engageForm
+                }
+                if (this.searchValue.departmentId) {
+                    url += '&departmentId='+this.searchValue.departmentId
+                }
+                if (this.searchValue.beginDateScope) {
+                    url += '&beginDateScope='+this.searchValue.beginDateScope;
+                }
+            } else {
+                url += '&name=' + this.keyword;
+            }
+            this.getRequest(url).then(resp => {
                 this.loading = false;
                 if (resp) {
                     this.emps = resp.data;
                     this.total = resp.total;
                 }
-            })
+            });
         }
     }
 }
 </script>
 
-<style scoped>
+<style>
+
+/* 可以设置不同的进入和离开动画 */
+/* 设置持续时间和动画函数 */
+.slide-fade-enter-active {
+    transition: all .8s ease;
+}
+.slide-fade-leave-active {
+    transition: all .8s cubic-bezier(1.0, 0.5, 0.8, 1.0);
+}
+.slide-fade-enter, .slide-fade-leave-to
+    /* .slide-fade-leave-active for below version 2.1.8 */ {
+    transform: translateX(10px);
+    opacity: 0;
+}
 
 </style>
