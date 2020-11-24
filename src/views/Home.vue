@@ -3,16 +3,22 @@
     <el-container>
       <el-header class="homeHeader">
         <div class="title">V Homan Resource</div>
-              <el-dropdown class="userInfo" @command="commandHandler">
+              <div>
+                  <el-button icon="el-icon-bell" type="text" style="margin-right: 8px;color: #000000" size="normal"
+                             @click="goChat">
+
+                  </el-button>
+                  <el-dropdown class="userInfo" @command="commandHandler">
                   <span class="el-dropdown-link">
                     {{user.name}}<i><img :src="user.userface" alt=""></i>
                   </span>
                       <el-dropdown-menu slot="dropdown">
-                        <el-dropdown-item command="userinfo">Personal Center</el-dropdown-item>
-                        <el-dropdown-item command="settings">Settings</el-dropdown-item>
-                        <el-dropdown-item command="logout" divided>Logout</el-dropdown-item>
+                          <el-dropdown-item command="userinfo">Personal Center</el-dropdown-item>
+                          <el-dropdown-item command="settings">Settings</el-dropdown-item>
+                          <el-dropdown-item command="logout" divided>Logout</el-dropdown-item>
                       </el-dropdown-menu>
-              </el-dropdown>
+                  </el-dropdown>
+              </div>
       </el-header>
       <el-container>
         <el-aside width="200px">
@@ -57,6 +63,9 @@ export default {
 
     },
     methods:{
+        goChat() {
+            this.$router.push("/chat")
+        },
     commandHandler(cmd) {
       if (cmd === 'logout') {
         this.$confirm('This operation will logout, continue?', 'hit', {

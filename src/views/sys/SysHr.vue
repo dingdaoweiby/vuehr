@@ -5,7 +5,7 @@
         <el-button icon="el-icon-search" type="primary" @click="doSearch">Search</el-button>
     </div>
     <div class="hr-container">
-          <el-card class="hr-card" v-for="(hr,index) in hrs" :key="index">
+          <el-card class="hr-card" v-for="(hr,router) in hrs" :key="index">
               <div slot="header" class="clearfix">
                   <span>{{hr.name}}</span>
                   <el-button style="float: right; padding: 3px 0; color: red" type="text" icon="el-icon-delete" @click="deleteHr(hr)"></el-button>

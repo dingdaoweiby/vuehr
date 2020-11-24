@@ -21,7 +21,7 @@
                          element-loading-background="rgba(0, 0, 0, 0.8)"
                          accordion
                          @change="change">
-                <el-collapse-item :title="r.nameZh" :name="r.id" v-for="(r,index) in roles" :key="index">
+                <el-collapse-item :title="r.nameZh" :name="r.id" v-for="(r,router) in roles" :key="index">
                     <el-card class="box-card">
                         <div slot="header" class="clearfix">
                             <span>
@@ -110,7 +110,7 @@
             cancelUpdate() {
                 this.activeName = -1;
             },
-            doUpdate(rid, index){
+            doUpdate(rid, router){
                 let tree = this.$refs.tree[index];
                 let selectedKeys = tree.getCheckedKeys(true);
                 let url='/system/basic/permiss/?rid='+rid;

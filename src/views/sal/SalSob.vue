@@ -39,10 +39,10 @@
           width="50%">
           <div style="display: flex; justify-content: space-around; align-items: center">
               <el-steps direction="vertical" :active="activeItemIndex">
-                  <el-step :title="itemName" v-for="(itemName, index) in salaryItemName" :key="index"></el-step>
+                  <el-step :title="itemName" v-for="(itemName, router) in salaryItemName" :key="index"></el-step>
               </el-steps>
               <el-input v-model="salary[title]" :placeholder="'Please Add Item : ' + salaryItemName[index] + '...'"
-                        v-for="(value,title, index) in
+                        v-for="(value,title, router) in
               salary" :key="index" v-show="activeItemIndex === index" style="width: 400px">
 
               </el-input>

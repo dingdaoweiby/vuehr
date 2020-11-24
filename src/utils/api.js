@@ -1,10 +1,9 @@
 import axios from 'axios';
 import { Message } from 'element-ui';
-import index from '../router/index';
 import router from "../router/index";
 
 axios.interceptors.response.use(success=>{
-    if (success.status && success.status == 200 && success.data.status == 500) {
+    if (success.status && success.status === 200 && success.data.status === 500) {
         Message.error({message:success.data.msg})
         return;
     }
@@ -13,11 +12,11 @@ axios.interceptors.response.use(success=>{
     }
     return success.data;
 },error => {
-    if (error.response.status == 504 || error.response.status == 404) {
+    if (error.response.status === 504 || error.response.status === 404) {
         Message.error({message:'Server is Down.....'})
-    } else if (error.response.status == 403) {
+    } else if (error.response.status === 403) {
         Message.error({message:'Insufficient Authrization, Please contact admin!!'})
-    } else if (error.response.status == 401) {
+    } else if (error.response.status === 401) {
         Message.error({message:'Has not login in, please login!'});
         router.replace('/');
     } else {

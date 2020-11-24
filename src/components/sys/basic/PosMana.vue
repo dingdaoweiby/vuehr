@@ -149,7 +149,7 @@
                     this.$message.error('Position name can not be null!!!');
                 }
             },
-            showEditView(index,data){
+            showEditView(router,data){
                 Object.assign(this.updatePos, data);
                 this.dialogVisible=true;
 
@@ -163,7 +163,7 @@
                   }
               })
             },
-            handleDelete(index,data){
+            handleDelete(router,data){
                 this.$confirm('This operatio will permanentally delete ' + data.name + ' , continue?', 'Hit', {
                     confirmButtonText: 'Confirm',
                     cancelButtonText: 'Cancel',
