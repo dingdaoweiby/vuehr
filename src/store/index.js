@@ -1,6 +1,7 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
 import {getRequest} from "@/utils/api";
+import {Notification} from "element-ui";
 import '../utils/stomp'
 import '../utils/sockjs'
 
@@ -16,7 +17,8 @@ const store = new Vuex.Store({
         currentSession: null,
         currentHr: JSON.parse(window.sessionStorage.getItem("user")),
         filterKey: '',
-        stomp: null
+        stomp: null,
+        isDot:{}
     },
     mutations: {
         INIT_CURRENTHR(state, hr) {
@@ -26,7 +28,9 @@ const store = new Vuex.Store({
             state.routes = data;
         },
         changeCurrentSession(state, currentSession) {
+            Vue.set(state.isDot, state.currentHr.username + '#' + currentSession.username, false);
             state.currentSession = currentSession;
+
         },
         addMessage(state, msg) {
             let mss = state.sessions[state.currentHr.username + '#' + msg.to];
@@ -57,6 +61,14 @@ const store = new Vuex.Store({
             context.state.stomp.connect({}, success => {
                 context.state.stomp.subscribe('/user/queue/chat', msg => {
                     let receiveMsg = JSON.parse(msg.body);
+                    if (!context.state.currentSession || receiveMsg.from !== context.state.currentSession.username) {
+                        Notification.info({
+                            title: '['+ receiveMsg.fromNickName +']' +'Send a new message',
+                            message: receiveMsg.content.length > 10 ? receiveMsg.content.substr(0, 10) : receiveMsg.content,
+                            position: 'bottom-right'
+                        })
+                        Vue.set(context.state.isDot, context.state.currentHr.username + '#' + receiveMsg.from, true);
+                    }
                     receiveMsg.notSelf = true;
                     receiveMsg.to = receiveMsg.from;
                     context.commit('addMessage', receiveMsg);
