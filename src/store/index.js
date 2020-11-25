@@ -1,6 +1,6 @@
 import Vue from 'vue'
 import Vuex from 'vuex'
-import {getRequest} from "@/utils/api";
+import {getRequest} from "../utils/api";
 import {Notification} from "element-ui";
 import '../utils/stomp'
 import '../utils/sockjs'
